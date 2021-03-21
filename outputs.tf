@@ -44,8 +44,8 @@ output "aws_dynamodb_table_stream_label" {
 }
 
 # Lambda function
-output "aws_lambda_function_name" {
-  value       = aws_lambda_function.this.name
+output "aws_lambda_function_function_name" {
+  value       = aws_lambda_function.this.function_name
   description = "The name of the lambda function"
 }
 

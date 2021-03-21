@@ -15,3 +15,7 @@ provider "aws" {
     role_arn     = "arn:aws:iam::${var.aws_account}:role/${var.aws_role}"
   }  
 }
+
+provider "archive" {
+  
+}
