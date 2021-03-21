@@ -80,11 +80,18 @@ resource "aws_iam_role" "iam_for_lambda" {
 EOF
 }
 
+data "archive_file" "this" {
+  type        = "zip"
+  source_file = var.archive_file_source_file
+  output_path = var.archive_file_output_path
+}
+
+
 resource "aws_lambda_function" "this" {
-  function_name = var.aws_lambda_function_name
+  function_name = var.aws_lambda_function_function_name
 
   filename         = var.aws_lambda_function_filename
-  source_code_hash = filebase64sha256(var.aws_lambda_function_filename)
+  source_code_hash = filebase64sha256(var.archive_file_output_path)
 
   role    = aws_iam_role.iam_for_lambda.arn
   handler = var.aws_lambda_function_handler
