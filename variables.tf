@@ -61,14 +61,14 @@ variable "aws_dynamodb_table_write_capacity" {
 }
 
 # Lambda
-variable "aws_lambda_function_name" {
+variable "aws_lambda_function_function_name" {
   type        = string
-  description = "Required - Name of the lambda function"    
+  description = "Required - function_name of the lambda function"    
 }
 
 variable "aws_lambda_function_filename" {
   type        = string
-  description = "Required - fileame of the lambda function ends in filename.zip"    
+  description = "Required - filename of the lambda function ends in filename.zip"    
 }
 
 variable "aws_lambda_function_handler" {
@@ -79,4 +79,15 @@ variable "aws_lambda_function_handler" {
 variable "aws_lambda_function_runtime" {
   type        = string
   description = "Required - runtime of the lambda function, python, node, c#, etc"    
+}
+
+# Lambda Archive file
+variable "archive_file_source_file" {
+  type        = string
+  description = "Required - source to archive for lambda function eg. lambda_function.py"    
+}
+
+variable "archive_file_output_path" {
+  type        = string
+  description = "Required - output path of the archive file for the lambda function eg. lambda_function.zip"    
 }

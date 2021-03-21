@@ -19,7 +19,12 @@ aws_dynamodb_table_write_capacity = "1"
 
 # Lambda
 
-aws_lambda_function_name = "textract_lambda.zip"
-aws_lambda_function_filename = "textract_lambda"
+aws_lambda_function_function_name = "textract_lambda"
+aws_lambda_function_filename = "textract_lambda.zip"
 aws_lambda_function_handler = "textract_lambda.lambda_handler"
 aws_lambda_function_runtime = "python3.6"
+
+# Lambda archive file
+
+archive_file_source_file = "textract_lambda.py"
+archive_file_output_path = "textract_lambda.zip"
