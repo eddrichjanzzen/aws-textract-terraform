@@ -59,3 +59,24 @@ variable "aws_dynamodb_table_write_capacity" {
   type        = string
   description = "(Optional) The number of write units for this table. If the billing_mode is PROVISIONED, this field is required."
 }
+
+# Lambda
+variable "aws_lambda_function_name" {
+  type        = string
+  description = "Required - Name of the lambda function"    
+}
+
+variable "aws_lambda_function_filename" {
+  type        = string
+  description = "Required - fileame of the lambda function ends in filename.zip"    
+}
+
+variable "aws_lambda_function_handler" {
+  type        = string
+  description = "Required - Name of the lambda handler"    
+}
+
+variable "aws_lambda_function_runtime" {
+  type        = string
+  description = "Required - runtime of the lambda function, python, node, c#, etc"    
+}

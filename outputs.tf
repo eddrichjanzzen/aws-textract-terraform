@@ -42,3 +42,19 @@ output "aws_dynamodb_table_stream_label" {
   value       = aws_dynamodb_table.this.stream_label
   description = "A timestamp, in ISO 8601 format, for this stream. Note that this timestamp is not a unique identifier for the stream on its own. However, the combination of AWS customer ID, table name and this field is guaranteed to be unique. It can be used for creating CloudWatch Alarms. Only available when stream_enabled = true"
 }
+
+# Lambda function
+output "aws_lambda_function_name" {
+  value       = aws_lambda_function.this.name
+  description = "The name of the lambda function"
+}
+
+output "aws_lambda_function_handler" {
+  value       = aws_lambda_function.this.handler
+  description = "The handler of the lambda function"
+}
+
+output "aws_lambda_function_runtime" {
+  value       = aws_lambda_function.this.runtime
+  description = "The runtime of the lambda function"
+}
