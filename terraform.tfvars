@@ -24,6 +24,15 @@ aws_lambda_function_filename = "textract_lambda.zip"
 aws_lambda_function_handler = "textract_lambda.lambda_handler"
 aws_lambda_function_runtime = "python3.6"
 
+# Lambda service role
+
+lambda_service_role_name = "textract_lambda_service_role"
+lambda_service_role_policy_name ="textract_lambda_service_role_policy"
+
+# Lambda SQS Event Source
+
+aws_lambda_event_source_mapping_batch_size = 1
+
 # Lambda archive file
 
 archive_file_source_file = "textract_lambda.py"
