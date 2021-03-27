@@ -81,6 +81,26 @@ variable "aws_lambda_function_runtime" {
   description = "Required - runtime of the lambda function, python, node, c#, etc"    
 }
 
+# Lambda SQS Event Source
+
+variable "aws_lambda_event_source_mapping_batch_size" {
+  type        = number
+  description = "Required - Number of messages you want to send the sqs queue at a time. eg. 1 message at a time"    
+}
+
+# Lambda Service Role Name
+
+variable "lambda_service_role_name" {
+  type        = string
+  description = "Required - the service role name for the lambda function"    
+}
+
+variable "lambda_service_role_policy_name" {
+  type        = string
+  description = "Required - the service role policy name for the lambda function"    
+}
+
+
 # Lambda Archive file
 variable "archive_file_source_file" {
   type        = string
