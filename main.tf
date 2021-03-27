@@ -15,7 +15,7 @@ resource "aws_sqs_queue_policy" "this" {
       "Sid" : "First",
       "Effect": "Allow",
       "Principal": "*",
-      "Action": "sqs:SendMessage",
+      "Action": "sqs:*",
       "Resource": "${aws_sqs_queue.this.arn}",
       "Condition" : {
         "ArnEquals": { 
@@ -27,7 +27,6 @@ resource "aws_sqs_queue_policy" "this" {
 }
 POLICY
 }
-
 
 # AWS S3 bucket
 resource "aws_s3_bucket" "this" {
@@ -59,26 +58,65 @@ resource "aws_dynamodb_table" "this" {
 
 }
 
-# AWS Lambda Function
-
-resource "aws_iam_role" "iam_for_lambda" {
-  name = "iam_for_lambda"
+# Lambda IAM Role and Policy
+resource "aws_iam_role" "lambda_service_role" {
+  name = var.lambda_service_role_name
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Action": "sts:AssumeRole",
+      "Effect": "Allow",
       "Principal": {
         "Service": "lambda.amazonaws.com"
       },
-      "Effect": "Allow",
-      "Sid": ""
+      "Action": "sts:AssumeRole"
     }
   ]
 }
 EOF
 }
+
+resource "aws_iam_policy" "lambda_service_role_policy" {
+  name        = var.lambda_service_role_policy_name
+  description = "Provides write permissions to CloudWatch Logs, access Dynamodb, and SQS"
+  path        = "/"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+        "Sid": "",
+        "Effect": "Allow",
+        "Action": "lambda:InvokeFunction",
+        "Resource": "${aws_lambda_function.this.arn}"
+    },
+    {
+        "Sid": "",
+        "Effect": "Allow",
+        "Action": [
+            "logs:*"
+        ],
+        "Resource": "*"
+    },
+    {
+        "Sid": "",
+        "Effect": "Allow",
+        "Action": [
+            "sqs:*"
+        ],
+        "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  role       = aws_iam_role.lambda_service_role.name
+  policy_arn = aws_iam_policy.lambda_service_role_policy.arn
+}
+
 
 data "archive_file" "this" {
   type        = "zip"
@@ -93,15 +131,22 @@ resource "aws_lambda_function" "this" {
   filename         = var.aws_lambda_function_filename
   source_code_hash = filebase64sha256(var.archive_file_output_path)
 
-  role    = aws_iam_role.iam_for_lambda.arn
+  role    = aws_iam_role.lambda_service_role.arn
   handler = var.aws_lambda_function_handler
   runtime = var.aws_lambda_function_runtime
 
   environment {
     variables = {
-      greeting = "Hello"
+      s3_bucket_name = var.aws_s3_bucket_name
     }
   }
 }
 
 
+# s3 bucket upload trigger
+resource "aws_lambda_event_source_mapping" "this" {
+  event_source_arn = aws_sqs_queue.this.arn
+  enabled = true
+  function_name = var.aws_lambda_function_function_name
+  batch_size = var.aws_lambda_event_source_mapping_batch_size
+}
