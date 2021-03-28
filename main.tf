@@ -86,26 +86,44 @@ resource "aws_iam_policy" "lambda_service_role_policy" {
   "Version": "2012-10-17",
   "Statement": [
     {
-        "Sid": "",
-        "Effect": "Allow",
-        "Action": "lambda:InvokeFunction",
-        "Resource": "${aws_lambda_function.this.arn}"
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": "lambda:InvokeFunction",
+      "Resource": "${aws_lambda_function.this.arn}"
     },
     {
-        "Sid": "",
-        "Effect": "Allow",
-        "Action": [
-            "logs:*"
-        ],
-        "Resource": "*"
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": [
+          "logs:*"
+      ],
+      "Resource": "*"
     },
     {
-        "Sid": "",
-        "Effect": "Allow",
-        "Action": [
-            "sqs:*"
-        ],
-        "Resource": "*"
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": [
+          "sqs:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "",
+      "Action": [
+        "s3:*"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": [
+          "textract:*"
+      ],
+      "Resource": "*"
     }
   ]
 }
