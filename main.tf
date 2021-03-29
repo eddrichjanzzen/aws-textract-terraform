@@ -1,11 +1,11 @@
 # AWS SQS Queue
-resource "aws_sqs_queue" "this" {
+resource "aws_sqs_queue" "sync_queue" {
   name                  = var.aws_sqs_queue_name
 }
 
 # AWS SQS Queue policy
-resource "aws_sqs_queue_policy" "this" {
-  queue_url             =  aws_sqs_queue.this.id
+resource "aws_sqs_queue_policy" "sync_queue" {
+  queue_url             =  aws_sqs_queue.sync_queue.id
   policy                = <<POLICY
 {
   "Version" : "2012-10-17",
@@ -16,7 +16,7 @@ resource "aws_sqs_queue_policy" "this" {
       "Effect": "Allow",
       "Principal": "*",
       "Action": "sqs:*",
-      "Resource": "${aws_sqs_queue.this.arn}",
+      "Resource": "${aws_sqs_queue.sync_queue.arn}",
       "Condition" : {
         "ArnEquals": { 
           "aws:SourceArn": "${aws_s3_bucket.this.arn}"
@@ -28,6 +28,35 @@ resource "aws_sqs_queue_policy" "this" {
 POLICY
 }
 
+
+# DynamoDB Table Document Input
+resource "aws_dynamodb_table" "document_input_table" {
+  name           = var.document_input_table_name
+  hash_key       = var.document_input_table_hash_key
+  read_capacity  = var.document_input_table_read_capacity
+  write_capacity = var.document_input_table_write_capacity
+
+  attribute {
+    name = var.document_input_table_hash_key
+    type = "S"
+  }
+}
+
+
+# DynamoDB Table Document Output
+resource "aws_dynamodb_table" "document_output_table" {
+  name           = var.document_output_table_name
+  hash_key       = var.document_output_table_hash_key
+  read_capacity  = var.document_output_table_read_capacity
+  write_capacity = var.document_output_table_write_capacity
+
+  attribute {
+    name = var.document_output_table_hash_key
+    type = "S"
+  }
+}
+
+
 # AWS S3 bucket
 resource "aws_s3_bucket" "this" {
   bucket = var.aws_s3_bucket_name
@@ -38,25 +67,11 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   bucket = aws_s3_bucket.this.id
 
   queue { 
-    queue_arn = aws_sqs_queue.this.arn
+    queue_arn = aws_sqs_queue.sync_queue.arn
     events = ["s3:ObjectCreated:Put"]
   }
-
 }
 
-# DynamoDB Table
-resource "aws_dynamodb_table" "this" {
-  name           = var.aws_dynamodb_table_name
-  hash_key       = var.aws_dynamodb_table_hash_key
-  read_capacity  = var.aws_dynamodb_table_read_capacity
-  write_capacity = var.aws_dynamodb_table_write_capacity
-
-  attribute {
-    name = var.aws_dynamodb_table_hash_key
-    type = "S"
-  }
-
-}
 
 # Lambda IAM Role and Policy
 resource "aws_iam_role" "lambda_service_role" {
@@ -79,7 +94,7 @@ EOF
 
 resource "aws_iam_policy" "lambda_service_role_policy" {
   name        = var.lambda_service_role_policy_name
-  description = "Provides write permissions to CloudWatch Logs, access Dynamodb, and SQS"
+  description = "Provides write permissions to CloudWatch Logs, Access Dynamodb, SQS, and Textract"
   path        = "/"
   policy = <<EOF
 {
@@ -88,14 +103,8 @@ resource "aws_iam_policy" "lambda_service_role_policy" {
     {
       "Sid": "",
       "Effect": "Allow",
-      "Action": "lambda:InvokeFunction",
-      "Resource": "${aws_lambda_function.this.arn}"
-    },
-    {
-      "Sid": "",
-      "Effect": "Allow",
       "Action": [
-          "logs:*"
+        "lambda:*"
       ],
       "Resource": "*"
     },
@@ -103,7 +112,15 @@ resource "aws_iam_policy" "lambda_service_role_policy" {
       "Sid": "",
       "Effect": "Allow",
       "Action": [
-          "sqs:*"
+        "logs:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:*"
       ],
       "Resource": "*"
     },
@@ -121,7 +138,15 @@ resource "aws_iam_policy" "lambda_service_role_policy" {
       "Sid": "",
       "Effect": "Allow",
       "Action": [
-          "textract:*"
+        "textract:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
       ],
       "Resource": "*"
     }
@@ -130,41 +155,61 @@ resource "aws_iam_policy" "lambda_service_role_policy" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_logs" {
+resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   role       = aws_iam_role.lambda_service_role.name
   policy_arn = aws_iam_policy.lambda_service_role_policy.arn
 }
 
+# Document Proc lambda
 
-data "archive_file" "this" {
+data "archive_file" "docproc" {
   type        = "zip"
-  source_file = var.archive_file_source_file
-  output_path = var.archive_file_output_path
+  source_file = var.docproc_archive_file_source_file
+  output_path = var.docproc_archive_file_output_path
 }
 
+resource "aws_lambda_function" "docproc" {
+  function_name = var.docproc_function_name
 
-resource "aws_lambda_function" "this" {
-  function_name = var.aws_lambda_function_function_name
-
-  filename         = var.aws_lambda_function_filename
-  source_code_hash = filebase64sha256(var.archive_file_output_path)
+  filename         = var.docproc_function_filename
+  source_code_hash = filebase64sha256(var.docproc_archive_file_output_path)
 
   role    = aws_iam_role.lambda_service_role.arn
-  handler = var.aws_lambda_function_handler
+  handler = var.docproc_function_handler
   runtime = var.aws_lambda_function_runtime
+
+  # specify utils layer here
+  layers = [aws_lambda_layer_version.utils.arn]
 
   environment {
     variables = {
-      s3_bucket_name = var.aws_s3_bucket_name
+      SYNC_QUEUE_URL = aws_sqs_queue.sync_queue.id
+      ASYNC_QUEUE_URL = ""
     }
   }
 }
 
-
-# s3 bucket upload trigger
-resource "aws_lambda_event_source_mapping" "this" {
-  event_source_arn = aws_sqs_queue.this.arn
+resource "aws_lambda_event_source_mapping" "docproc" {
+  event_source_arn = aws_sqs_queue.sync_queue.arn
   enabled = true
-  function_name = var.aws_lambda_function_function_name
-  batch_size = var.aws_lambda_event_source_mapping_batch_size
+  function_name = var.docproc_function_name
+  batch_size = var.docproc_event_source_mapping_batch_size
 }
+
+
+# Archive_file for lambda layer
+data "archive_file" "utils" {
+  type        = "zip"
+  source_dir = var.lambda_layer_archive_file_source_dir
+  output_path = var.lambda_layer_archive_file_output_path
+}
+
+
+# Lambda Layer 
+resource "aws_lambda_layer_version" "utils" {
+  filename   = var.lambda_layer_filename
+  layer_name = var.lambda_layer_layer_name
+
+  compatible_runtimes = [var.aws_lambda_function_runtime]
+}
+
