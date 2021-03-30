@@ -98,6 +98,6 @@ def lambda_handler(event, context):
     request["bucketName"] = message['bucketName']
     request["objectName"] = message['objectName']
     request["features"] = message['features']    
-    request["documentsTable"] = os.environ['DOCUMENTS_TABLE']
+    request["documentsTable"] = os.environ['OUTPUT_TABLE']
 
     return processRequest(request)
