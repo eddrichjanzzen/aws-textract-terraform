@@ -24,17 +24,31 @@ variable "environment" {
   description = "Environment."
 }
 
+# Lambda Global Runtime 
+variable "aws_lambda_function_runtime" {
+  type        = string
+  description = "Required - runtime of the lambda function, python, node, c#, etc"    
+}
+
 
 # SQS queue
 
-variable "aws_sqs_queue_name" {
+variable "sync_queue_name" {
+  type        = string
+  description = "Required - Name of the sqs queue."    
+}
+
+
+# SQS queue
+
+variable "async_queue_name" {
   type        = string
   description = "Required - Name of the sqs queue."    
 }
 
 # S3 Bucket
 
-variable "aws_s3_bucket_name" {
+variable "new_documents_bucket_name" {
   type        = string
   description = "Required - Name of the s3 bucket."    
 }
@@ -82,8 +96,35 @@ variable "document_output_table_write_capacity" {
 }
 
 
+# S3proc Lambda
+variable "s3proc_function_name" {
+  type        = string
+  description = "Required - function_name of the s3proc function"    
+}
 
-# Text textract lambda 
+variable "s3proc_function_filename" {
+  type        = string
+  description = "Required - filename of s3proc function ends in filename.zip"    
+}
+
+variable "s3proc_function_handler" {
+  type        = string
+  description = "Required - Name of the lambda handler"    
+}
+
+# #3proc Archieve File
+variable "s3proc_archive_file_source_file" {
+  type        = string
+  description = "Required - source to archive for lambda function eg. lambda_function.py"    
+}
+
+variable "s3proc_archive_file_output_path" {
+  type        = string
+  description = "Required - output path of the archive file for the lambda function eg. lambda_function.zip"    
+}
+
+
+# Docproc Lambda
 variable "docproc_function_name" {
   type        = string
   description = "Required - function_name of the docproc function"    
@@ -99,10 +140,47 @@ variable "docproc_function_handler" {
   description = "Required - Name of the lambda handler"    
 }
 
-variable "aws_lambda_function_runtime" {
+
+# Docproc Archieve File
+variable "docproc_archive_file_source_file" {
   type        = string
-  description = "Required - runtime of the lambda function, python, node, c#, etc"    
+  description = "Required - source to archive for lambda function eg. lambda_function.py"    
 }
+
+variable "docproc_archive_file_output_path" {
+  type        = string
+  description = "Required - output path of the archive file for the lambda function eg. lambda_function.zip"    
+}
+
+# Syncproc Lambda
+variable "syncproc_function_name" {
+  type        = string
+  description = "Required - function_name of the syncproc function"    
+}
+
+variable "syncproc_function_filename" {
+  type        = string
+  description = "Required - filename of syncproc function ends in filename.zip"    
+}
+
+variable "syncproc_function_handler" {
+  type        = string
+  description = "Required - Name of the lambda handler"    
+}
+
+
+# Syncproc Archieve File
+variable "syncproc_archive_file_source_file" {
+  type        = string
+  description = "Required - source to archive for lambda function eg. lambda_function.py"    
+}
+
+variable "syncproc_archive_file_output_path" {
+  type        = string
+  description = "Required - output path of the archive file for the lambda function eg. lambda_function.zip"    
+}
+
+
 
 # Lambda SQS Event Source
 
@@ -124,15 +202,16 @@ variable "lambda_service_role_policy_name" {
 }
 
 
-# Textract Lambda Archive file
-variable "docproc_archive_file_source_file" {
+# Lambda Layer 
+
+variable "lambda_layer_filename" {
   type        = string
-  description = "Required - source to archive for lambda function eg. lambda_function.py"    
+  description = "Required - filename of the lambda layer"    
 }
 
-variable "docproc_archive_file_output_path" {
+variable "lambda_layer_layer_name" {
   type        = string
-  description = "Required - output path of the archive file for the lambda function eg. lambda_function.zip"    
+  description = "Required - layer name of the utils lambda layer"    
 }
 
 # Lambda Layer Archive file
@@ -145,16 +224,4 @@ variable "lambda_layer_archive_file_source_dir" {
 variable "lambda_layer_archive_file_output_path" {
   type        = string
   description = "Required - output path of the archive file for the lambda function eg. lambda_function.zip"    
-}
-
-# Lambda Layer 
-
-variable "lambda_layer_filename" {
-  type        = string
-  description = "Required - filename of the lambda layer"    
-}
-
-variable "lambda_layer_layer_name" {
-  type        = string
-  description = "Required - layer name of the utils lambda layer"    
 }
