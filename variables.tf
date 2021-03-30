@@ -184,7 +184,7 @@ variable "syncproc_archive_file_output_path" {
 
 # Lambda SQS Event Source
 
-variable "docproc_event_source_mapping_batch_size" {
+variable "syncproc_event_source_mapping_batch_size" {
   type        = number
   description = "Required - Number of messages you want to send the sqs queue at a time. eg. 1 message at a time"    
 }
