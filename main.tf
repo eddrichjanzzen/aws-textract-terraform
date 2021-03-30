@@ -252,8 +252,8 @@ data "archive_file" "syncproc" {
 resource "aws_lambda_event_source_mapping" "syncproc" {
   event_source_arn = aws_sqs_queue.sync_queue.arn
   enabled = true
-  function_name = var.docproc_function_name
-  batch_size = var.docproc_event_source_mapping_batch_size
+  function_name = var.syncproc_function_name
+  batch_size = var.syncproc_event_source_mapping_batch_size
 }
 
 
