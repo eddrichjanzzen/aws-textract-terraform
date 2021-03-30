@@ -117,6 +117,18 @@ output "S3proc_function_handler" {
 }
 
 
+# Sync function
+output "syncproc_function_name" {
+  value       = aws_lambda_function.syncproc.function_name
+  description = "The name of the textract lambda function"
+}
+
+output "syncproc_function_handler" {
+  value       = aws_lambda_function.syncproc.handler
+  description = "The handler of the textract lambda function"
+}
+
+
 # Utils Lambda Layer
 
 output "utils_lambda_layer_name" {
