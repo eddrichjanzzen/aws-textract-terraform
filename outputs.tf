@@ -1,4 +1,4 @@
-# SQS queue
+# SQS queue - Sync
 output "sync_sqs_queue_arn" {
   value       = aws_sqs_queue.sync_queue.arn
   description = "Full ARN of the sqs queue."
@@ -14,15 +14,31 @@ output "sync_sqs_queue_id" {
   description = "The name of the id queue."
 }
 
-
-# S3 bucket - Source bucket
-output "aws_s3_bucket_arn" {
-  value       = aws_s3_bucket.this.arn
+# SQS queue - Async
+output "async_sqs_queue_arn" {
+  value       = aws_sqs_queue.async_queue.arn
   description = "Full ARN of the sqs queue."
 }
 
-output "aws_s3_bucket_name" {
-  value       = aws_s3_bucket.this.bucket
+output "async_sqs_queue_name" {
+  value       = aws_sqs_queue.async_queue.name
+  description = "The name of the sqs queue."
+}
+
+output "async_sqs_queue_id" {
+  value       = aws_sqs_queue.async_queue.id
+  description = "The name of the id queue."
+}
+
+
+# S3 bucket - Source bucket
+output "new_documents_bucket_arn" {
+  value       = aws_s3_bucket.new_documents.arn
+  description = "Full ARN of the sqs queue."
+}
+
+output "new_documents_bucket_name" {
+  value       = aws_s3_bucket.new_documents.bucket
   description = "The name of the sqs queue."
 }
 
@@ -87,6 +103,19 @@ output "docproc_function_handler" {
   value       = aws_lambda_function.docproc.handler
   description = "The handler of the textract lambda function"
 }
+
+
+# S3proc function
+output "S3proc_function_name" {
+  value       = aws_lambda_function.s3proc.function_name
+  description = "The name of the textract lambda function"
+}
+
+output "S3proc_function_handler" {
+  value       = aws_lambda_function.s3proc.handler
+  description = "The handler of the textract lambda function"
+}
+
 
 # Utils Lambda Layer
 
