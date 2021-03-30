@@ -1,9 +1,9 @@
-# AWS SQS Queue
+# AWS SQS - Sync Queue
 resource "aws_sqs_queue" "sync_queue" {
-  name                  = var.aws_sqs_queue_name
+  name                  = var.sync_queue_name
 }
 
-# AWS SQS Queue policy
+# AWS SQS Queue Policy
 resource "aws_sqs_queue_policy" "sync_queue" {
   queue_url             =  aws_sqs_queue.sync_queue.id
   policy                = <<POLICY
@@ -19,9 +19,65 @@ resource "aws_sqs_queue_policy" "sync_queue" {
       "Resource": "${aws_sqs_queue.sync_queue.arn}",
       "Condition" : {
         "ArnEquals": { 
-          "aws:SourceArn": "${aws_s3_bucket.this.arn}"
+          "aws:SourceArn": "${aws_s3_bucket.new_documents.arn}"
         }
       }
+    }
+  ]   
+}
+POLICY
+}
+
+
+# AWS SQS - Async Queue
+resource "aws_sqs_queue" "async_queue" {
+  name                  = var.async_queue_name
+}
+
+# AWS SQS Queue policy
+resource "aws_sqs_queue_policy" "async_queue" {
+  queue_url             =  aws_sqs_queue.async_queue.id
+  policy                = <<POLICY
+{
+  "Version" : "2012-10-17",
+  "Id" : "sqspolicy",
+  "Statement" : [
+    {
+      "Sid" : "First",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "sqs:*",
+      "Resource": "${aws_sqs_queue.async_queue.arn}"
+    }
+  ]   
+}
+POLICY
+}
+
+
+# S3 Bucket for new Documents
+resource "aws_s3_bucket" "new_documents" {
+  bucket = var.new_documents_bucket_name
+}
+
+# S3 Bucket for new Documents Policy
+resource "aws_s3_bucket_policy" "new_documents" {
+  bucket                = aws_s3_bucket.new_documents.id
+  policy                = <<POLICY
+{
+  "Version" : "2012-10-17",
+  "Id" : "",
+  "Statement" : [
+    {
+      "Sid" : "First",
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Principal": {
+        "AWS": "${aws_iam_role.lambda_service_role.arn}"
+      },
+      "Resource": [
+        "${aws_s3_bucket.new_documents.arn}"
+      ]
     }
   ]   
 }
@@ -35,6 +91,8 @@ resource "aws_dynamodb_table" "document_input_table" {
   hash_key       = var.document_input_table_hash_key
   read_capacity  = var.document_input_table_read_capacity
   write_capacity = var.document_input_table_write_capacity
+  stream_enabled = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
 
   attribute {
     name = var.document_input_table_hash_key
@@ -55,23 +113,6 @@ resource "aws_dynamodb_table" "document_output_table" {
     type = "S"
   }
 }
-
-
-# AWS S3 bucket
-resource "aws_s3_bucket" "this" {
-  bucket = var.aws_s3_bucket_name
-}
-
-# AWS S3 bucket notification
-resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = aws_s3_bucket.this.id
-
-  queue { 
-    queue_arn = aws_sqs_queue.sync_queue.arn
-    events = ["s3:ObjectCreated:Put"]
-  }
-}
-
 
 # Lambda IAM Role and Policy
 resource "aws_iam_role" "lambda_service_role" {
@@ -94,7 +135,7 @@ EOF
 
 resource "aws_iam_policy" "lambda_service_role_policy" {
   name        = var.lambda_service_role_policy_name
-  description = "Provides write permissions to CloudWatch Logs, Access Dynamodb, SQS, and Textract"
+  description = "Provides write permissions to CloudWatch Logs, Access Dynamodb, SQS, s3, and Textract"
   path        = "/"
   policy = <<EOF
 {
@@ -104,49 +145,12 @@ resource "aws_iam_policy" "lambda_service_role_policy" {
       "Sid": "",
       "Effect": "Allow",
       "Action": [
-        "lambda:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Action": [
-        "logs:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Action": [
-        "sqs:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "",
-      "Action": [
+        "lambda:*",
+        "logs:*",
+        "sqs:*",
+        "textract:*",
+        "dynamodb:*",
         "s3:*"
-      ],
-      "Effect": "Allow",
-      "Resource": [
-        "*"
-      ]
-    },
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Action": [
-        "textract:*"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Action": [
-        "dynamodb:*"
       ],
       "Resource": "*"
     }
@@ -160,14 +164,7 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_service_role_policy.arn
 }
 
-# Document Proc lambda
-
-data "archive_file" "docproc" {
-  type        = "zip"
-  source_file = var.docproc_archive_file_source_file
-  output_path = var.docproc_archive_file_output_path
-}
-
+# Document Doc lambda
 resource "aws_lambda_function" "docproc" {
   function_name = var.docproc_function_name
 
@@ -181,15 +178,78 @@ resource "aws_lambda_function" "docproc" {
   # specify utils layer here
   layers = [aws_lambda_layer_version.utils.arn]
 
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_policy_attachment,
+    aws_cloudwatch_log_group.docproc
+  ]
+
   environment {
     variables = {
       SYNC_QUEUE_URL = aws_sqs_queue.sync_queue.id
-      ASYNC_QUEUE_URL = ""
+      ASYNC_QUEUE_URL = aws_sqs_queue.async_queue.id
     }
   }
 }
 
+resource "aws_cloudwatch_log_group" "docproc" {
+  name              = "/aws/lambda/${var.docproc_function_name}"
+  retention_in_days = 14
+}
+
+
 resource "aws_lambda_event_source_mapping" "docproc" {
+  event_source_arn  = aws_dynamodb_table.document_input_table.stream_arn
+  function_name     = aws_lambda_function.docproc.arn
+  starting_position = "LATEST"
+}
+
+
+
+data "archive_file" "docproc" {
+  type        = "zip"
+  source_file = var.docproc_archive_file_source_file
+  output_path = var.docproc_archive_file_output_path
+}
+
+
+# Document Doc lambda
+resource "aws_lambda_function" "syncproc" {
+  function_name = var.syncproc_function_name
+
+  filename         = var.syncproc_function_filename
+  source_code_hash = filebase64sha256(var.syncproc_archive_file_output_path)
+
+  role    = aws_iam_role.lambda_service_role.arn
+  handler = var.syncproc_function_handler
+  runtime = var.aws_lambda_function_runtime
+
+  # specify utils layer here
+  layers = [aws_lambda_layer_version.utils.arn]
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_policy_attachment,
+    aws_cloudwatch_log_group.syncproc
+  ]
+
+  environment {
+    variables = {
+      OUTPUT_TABLE = aws_dynamodb_table.document_output_table.id
+    }
+  }
+}
+
+resource "aws_cloudwatch_log_group" "syncproc" {
+  name              = "/aws/lambda/${var.syncproc_function_name}"
+  retention_in_days = 14
+}
+
+data "archive_file" "syncproc" {
+  type        = "zip"
+  source_file = var.syncproc_archive_file_source_file
+  output_path = var.syncproc_archive_file_output_path
+}
+
+resource "aws_lambda_event_source_mapping" "syncproc" {
   event_source_arn = aws_sqs_queue.sync_queue.arn
   enabled = true
   function_name = var.docproc_function_name
@@ -197,11 +257,61 @@ resource "aws_lambda_event_source_mapping" "docproc" {
 }
 
 
-# Archive_file for lambda layer
-data "archive_file" "utils" {
+# S3proc Lambda
+
+resource "aws_lambda_function" "s3proc" {
+  filename      = var.s3proc_function_filename
+  function_name = var.s3proc_function_name
+  
+  source_code_hash = filebase64sha256(var.docproc_archive_file_output_path)
+  
+  role          = aws_iam_role.lambda_service_role.arn
+  handler       = var.s3proc_function_handler
+  runtime       = var.aws_lambda_function_runtime
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_policy_attachment,
+    aws_cloudwatch_log_group.s3proc
+  ]
+
+  # specify utils layer here
+  layers = [aws_lambda_layer_version.utils.arn]
+
+  environment {
+    variables = {
+      DOCUMENTS_TABLE = aws_dynamodb_table.document_input_table.id
+    }
+  }
+}
+
+resource "aws_cloudwatch_log_group" "s3proc" {
+  name              = "/aws/lambda/${var.s3proc_function_name}"
+  retention_in_days = 14
+}
+
+data "archive_file" "s3proc" {
   type        = "zip"
-  source_dir = var.lambda_layer_archive_file_source_dir
-  output_path = var.lambda_layer_archive_file_output_path
+  source_file = var.s3proc_archive_file_source_file
+  output_path = var.s3proc_archive_file_output_path
+}
+
+resource "aws_lambda_permission" "allow_bucket" {
+  statement_id  = "AllowExecutionFromS3Bucket"
+  action        = "lambda:*"
+  function_name = aws_lambda_function.s3proc.arn
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.new_documents.arn
+}
+
+resource "aws_s3_bucket_notification" "s3proc" {
+  bucket = aws_s3_bucket.new_documents.id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.s3proc.arn
+    events              = ["s3:ObjectCreated:*"]
+  }
+
+  depends_on = [aws_lambda_permission.allow_bucket]
 }
 
 
@@ -213,3 +323,10 @@ resource "aws_lambda_layer_version" "utils" {
   compatible_runtimes = [var.aws_lambda_function_runtime]
 }
 
+
+# Archive_file for lambda layer
+data "archive_file" "utils" {
+  type        = "zip"
+  source_dir = var.lambda_layer_archive_file_source_dir
+  output_path = var.lambda_layer_archive_file_output_path
+}
