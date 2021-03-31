@@ -37,7 +37,7 @@ def callTextract(bucketName, objectName, detectText, detectForms, detectTables):
     return response
 
 
-def processImage(documentId, features, bucketName, objectName, outputTable):
+def processImage(documentId, features, bucketName, outputBucket, objectName, outputTable):
 
     detectText = "Text" in features
     detectForms = "Forms" in features
@@ -50,7 +50,7 @@ def processImage(documentId, features, bucketName, objectName, outputTable):
 
     print("Generating output for DocumentId: {}".format(documentId))
 
-    opg = OutputGenerator(documentId, response, bucketName, objectName, detectForms, detectTables, ddb)
+    opg = OutputGenerator(documentId, response, outputBucket, objectName, detectForms, detectTables, ddb)
     opg.run()
 
     print("DocumentId: {}".format(documentId))
@@ -70,12 +70,13 @@ def processRequest(request):
     objectName = request['objectName']
     features = request['features']
     documentId = request['documentId']
+    outputBucket = request['outputBucket']
     outputTable = request['outputTable']
     
     if(documentId and bucketName and objectName and features):
         print("DocumentId: {}, features: {}, Object: {}/{}".format(documentId, features, bucketName, objectName))
 
-        processImage(documentId, features, bucketName, objectName, outputTable)
+        processImage(documentId, features, bucketName, outputBucket, objectName, outputTable)
 
         output = "Document: {}, features: {}, Object: {}/{} processed.".format(documentId, features, bucketName, objectName)
         print(output)
@@ -93,9 +94,11 @@ def lambda_handler(event, context):
 
     request = {}
     request["documentId"] = message['documentId']
-    request["bucketName"] = os.environ['TEXTRACT_RESULTS_S3']
+    request["bucketName"] = message['bucketName']
     request["objectName"] = message['objectName']
     request["features"] = message['features']    
     request["outputTable"] = os.environ['OUTPUT_TABLE']
+    request["outputBucket"] = os.environ['TEXTRACT_RESULTS_S3']
+
 
     return processRequest(request)
