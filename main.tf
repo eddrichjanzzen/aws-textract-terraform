@@ -1,6 +1,7 @@
 # AWS SQS - Sync Queue
 resource "aws_sqs_queue" "sync_queue" {
-  name                  = var.sync_queue_name
+  name                       = var.sync_queue_name
+  visibility_timeout_seconds = var.sync_queue_visibility_timeout
 }
 
 # AWS SQS Queue Policy
@@ -16,12 +17,7 @@ resource "aws_sqs_queue_policy" "sync_queue" {
       "Effect": "Allow",
       "Principal": "*",
       "Action": "sqs:*",
-      "Resource": "${aws_sqs_queue.sync_queue.arn}",
-      "Condition" : {
-        "ArnEquals": { 
-          "aws:SourceArn": "${aws_s3_bucket.new_documents.arn}"
-        }
-      }
+      "Resource": "${aws_sqs_queue.sync_queue.arn}"
     }
   ]   
 }
@@ -31,7 +27,8 @@ POLICY
 
 # AWS SQS - Async Queue
 resource "aws_sqs_queue" "async_queue" {
-  name                  = var.async_queue_name
+  name                       = var.async_queue_name
+  visibility_timeout_seconds = var.sync_queue_visibility_timeout
 }
 
 # AWS SQS Queue policy
@@ -54,10 +51,16 @@ resource "aws_sqs_queue_policy" "async_queue" {
 POLICY
 }
 
+# random string generator
+resource "random_string" "id" {
+  length = 5
+  special = false
+  upper = false
+}
 
 # S3 Bucket for new Documents
 resource "aws_s3_bucket" "new_documents" {
-  bucket = var.new_documents_bucket_name
+  bucket = "${var.new_documents_bucket_name}-${random_string.id.result}"
 }
 
 # S3 Bucket for new Documents Policy
@@ -77,6 +80,36 @@ resource "aws_s3_bucket_policy" "new_documents" {
       },
       "Resource": [
         "${aws_s3_bucket.new_documents.arn}"
+      ]
+    }
+  ]   
+}
+POLICY
+}
+
+
+# S3 Bucket for Textract Results
+resource "aws_s3_bucket" "textract_results" {
+  bucket = "${var.textract_results_bucket_name}-${random_string.id.result}"
+}
+
+# S3 Bucket Policy
+resource "aws_s3_bucket_policy" "textract_results" {
+  bucket                = aws_s3_bucket.textract_results.id
+  policy                = <<POLICY
+{
+  "Version" : "2012-10-17",
+  "Id" : "",
+  "Statement" : [
+    {
+      "Sid" : "First",
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Principal": {
+        "AWS": "${aws_iam_role.lambda_service_role.arn}"
+      },
+      "Resource": [
+        "${aws_s3_bucket.textract_results.arn}"
       ]
     }
   ]   
@@ -201,16 +234,18 @@ resource "aws_lambda_event_source_mapping" "docproc" {
   event_source_arn  = aws_dynamodb_table.document_input_table.stream_arn
   function_name     = aws_lambda_function.docproc.arn
   starting_position = "LATEST"
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_policy_attachment
+  ]
+
 }
-
-
 
 data "archive_file" "docproc" {
   type        = "zip"
   source_file = var.docproc_archive_file_source_file
   output_path = var.docproc_archive_file_output_path
 }
-
 
 # Document Doc lambda
 resource "aws_lambda_function" "syncproc" {
@@ -221,6 +256,7 @@ resource "aws_lambda_function" "syncproc" {
 
   role    = aws_iam_role.lambda_service_role.arn
   handler = var.syncproc_function_handler
+  timeout  = var.syncproc_function_timeout
   runtime = var.aws_lambda_function_runtime
 
   # specify utils layer here
@@ -233,7 +269,8 @@ resource "aws_lambda_function" "syncproc" {
 
   environment {
     variables = {
-      OUTPUT_TABLE = aws_dynamodb_table.document_output_table.id
+      OUTPUT_TABLE = aws_dynamodb_table.document_output_table.id,
+      TEXTRACT_RESULTS_S3 = aws_s3_bucket.textract_results.id
     }
   }
 }
@@ -254,8 +291,12 @@ resource "aws_lambda_event_source_mapping" "syncproc" {
   enabled = true
   function_name = var.syncproc_function_name
   batch_size = var.syncproc_event_source_mapping_batch_size
-}
 
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_policy_attachment
+  ]
+
+}
 
 # S3proc Lambda
 
@@ -311,7 +352,11 @@ resource "aws_s3_bucket_notification" "s3proc" {
     events              = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_lambda_permission.allow_bucket]
+  depends_on = [
+    aws_lambda_permission.allow_bucket,
+    aws_iam_policy.lambda_service_role_policy
+  ]
+
 }
 
 
