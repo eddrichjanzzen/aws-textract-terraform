@@ -7,12 +7,17 @@ aws_role    = "OrganizationAccountAccessRole"
 
 # SQS - Sync Queue
 sync_queue_name = "182191634518-ap-southeast-1-sync-queue"
+sync_queue_visibility_timeout = 300
 
 # SQS - Async Queue
 async_queue_name = "182191634518-ap-southeast-1-async-queue"
+async_queue_visibility_timeout = 300
 
 # New Documents S3 bucket
 new_documents_bucket_name = "182191634518-ap-southeast-1-new-documents"
+
+# Textract Results S3 bucket
+textract_results_bucket_name = "182191634518-ap-southeast-1-textract-results"
 
 # General Function runtime
 aws_lambda_function_runtime = "python3.6"
@@ -51,6 +56,7 @@ docproc_archive_file_output_path = "zipfiles/docproc.zip"
 syncproc_function_name = "syncproc"
 syncproc_function_filename= "zipfiles/syncproc.zip"
 syncproc_function_handler = "syncproc.lambda_handler"
+syncproc_function_timeout = 300
 
 # Syncproc - Archive File
 syncproc_archive_file_source_file = "src/syncproc.py"
