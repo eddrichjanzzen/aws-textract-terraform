@@ -37,7 +37,7 @@ def callTextract(bucketName, objectName, detectText, detectForms, detectTables):
     return response
 
 
-def processImage(documentId, features, bucketName, objectName, documentsTableName):
+def processImage(documentId, features, bucketName, objectName, outputTable):
 
     detectText = "Text" in features
     detectForms = "Forms" in features
@@ -46,7 +46,7 @@ def processImage(documentId, features, bucketName, objectName, documentsTableNam
     response = callTextract(bucketName, objectName, detectText, detectForms, detectTables)
 
     dynamodb = AwsHelper().getResource("dynamodb")
-    ddb = dynamodb.Table(documentsTableName)
+    ddb = dynamodb.Table(outputTable)
 
     print("Generating output for DocumentId: {}".format(documentId))
 
@@ -55,7 +55,7 @@ def processImage(documentId, features, bucketName, objectName, documentsTableNam
 
     print("DocumentId: {}".format(documentId))
 
-    ds = datastore.DocumentStore(documentsTableName)
+    ds = datastore.DocumentStore(outputTable)
     ds.markDocumentComplete(documentId)
 
 # --------------- Main handler ------------------
@@ -71,13 +71,11 @@ def processRequest(request):
     features = request['features']
     documentId = request['documentId']
     outputTable = request['outputTable']
-    documentsTable = request['documentsTable']
-    documentsTable = request["documentsTable"]
     
     if(documentId and bucketName and objectName and features):
         print("DocumentId: {}, features: {}, Object: {}/{}".format(documentId, features, bucketName, objectName))
 
-        processImage(documentId, features, bucketName, objectName, outputTable, documentsTable)
+        processImage(documentId, features, bucketName, objectName, outputTable)
 
         output = "Document: {}, features: {}, Object: {}/{} processed.".format(documentId, features, bucketName, objectName)
         print(output)
@@ -95,9 +93,9 @@ def lambda_handler(event, context):
 
     request = {}
     request["documentId"] = message['documentId']
-    request["bucketName"] = message['bucketName']
+    request["bucketName"] = os.environ['TEXTRACT_RESULTS_S3']
     request["objectName"] = message['objectName']
     request["features"] = message['features']    
-    request["documentsTable"] = os.environ['OUTPUT_TABLE']
+    request["outputTable"] = os.environ['OUTPUT_TABLE']
 
     return processRequest(request)
