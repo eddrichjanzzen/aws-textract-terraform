@@ -354,7 +354,7 @@ resource "aws_s3_bucket_notification" "s3proc" {
 
   depends_on = [
     aws_lambda_permission.allow_bucket,
-    aws_iam_policy.lambda_service_role_policy
+    aws_iam_role_policy_attachment.lambda_policy_attachment
   ]
 
 }
