@@ -31,27 +31,46 @@ variable "aws_lambda_function_runtime" {
 }
 
 
-# SQS queue
+# SQS queue - Sync
 
 variable "sync_queue_name" {
   type        = string
   description = "Required - Name of the sqs queue."    
 }
 
+variable "sync_queue_visibility_timeout" {
+  type        = string
+  description = "Required - visisbility timeout of the sqs queue, make sure this is equal or greater than the timeout of the lambda function"    
+}
 
-# SQS queue
+
+# SQS queue - Async
 
 variable "async_queue_name" {
   type        = string
   description = "Required - Name of the sqs queue."    
 }
 
-# S3 Bucket
+variable "async_queue_visibility_timeout" {
+  type        = string
+  description = "Required - visisbility timeout of the sqs queue, make sure this is equal or greater than the timeout of the lambda function"    
+}
+
+
+# S3 Bucket - new 
 
 variable "new_documents_bucket_name" {
   type        = string
   description = "Required - Name of the s3 bucket."    
 }
+
+# S3 Bucket - results
+
+variable "textract_results_bucket_name" {
+  type        = string
+  description = "Required - Name of the s3 bucket."    
+}
+
 
 # DynamoDB Table Document Input
 variable "document_input_table_name" {
@@ -168,6 +187,10 @@ variable "syncproc_function_handler" {
   description = "Required - Name of the lambda handler"    
 }
 
+variable "syncproc_function_timeout" {
+  type        = number
+  description = "Required - timeout of syncproc function, need to set greater than 3 seconds"    
+}
 
 # Syncproc Archieve File
 variable "syncproc_archive_file_source_file" {
