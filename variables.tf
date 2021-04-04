@@ -303,6 +303,11 @@ variable "asyncproc_function_handler" {
   description = "Required - Name of the lambda handler"    
 }
 
+variable "asyncproc_cloudwatch_trigger_schedule" {
+  type        = string
+  description = "Required - schedule for cloudwatch trigger, Lambda schedule expression. Defaults to every 5 minutes, eg value: rate(1 minutes)"    
+}
+
 variable "asyncproc_function_timeout" {
   type        = number
   description = "Required - timeout of asyncproc function, need to set greater than 3 seconds"    

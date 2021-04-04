@@ -85,6 +85,7 @@ asyncproc_function_name = "asyncproc"
 asyncproc_function_filename= "zipfiles/asyncproc.zip"
 asyncproc_function_handler = "asyncproc.lambda_handler"
 asyncproc_function_timeout = 14400
+asyncproc_cloudwatch_trigger_schedule = "rate(5 minutes)"
 asyncproc_archive_file_source_file = "src/asyncproc.py"
 asyncproc_archive_file_output_path = "zipfiles/asyncproc.zip"
 
