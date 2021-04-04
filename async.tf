@@ -45,7 +45,7 @@ resource "aws_lambda_permission" "allow_s3batchproc" {
 }
 
 resource "aws_s3_bucket_notification" "s3batchproc" {
-  bucket = aws_s3_bucket.new_documents.id
+  bucket = aws_s3_bucket.existing_documents.id
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.s3batchproc.arn
@@ -53,6 +53,7 @@ resource "aws_s3_bucket_notification" "s3batchproc" {
   }
 
   depends_on = [
+    aws_s3_bucket.existing_documents,
     aws_lambda_permission.allow_s3batchproc,
     aws_iam_role_policy_attachment.lambda_policy_attachment
   ]
