@@ -327,7 +327,7 @@ variable "syncproc_event_source_mapping_batch_size" {
   description = "Required - Number of messages you want to send the sqs queue at a time. eg. 1 message at a time"    
 }
 
-# Textract Lambda Service Role
+# Lambda Service Role
 
 variable "lambda_service_role_name" {
   type        = string
@@ -338,6 +338,20 @@ variable "lambda_service_role_policy_name" {
   type        = string
   description = "Required - the service role policy name for the lambda function"    
 }
+
+
+# Textract Service Role
+
+variable "textract_service_role_name" {
+  type        = string
+  description = "Required - the service role name for textract"    
+}
+
+variable "textract_service_role_policy_name" {
+  type        = string
+  description = "Required - the service role policy name for textract"    
+}
+
 
 
 # Lambda Layer 

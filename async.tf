@@ -121,8 +121,9 @@ resource "aws_lambda_function" "asyncproc" {
 
   environment {
     variables = {
-      OUTPUT_BUCKET = aws_s3_bucket.textract_results.id
-      OUTPUT_TABLE = aws_dynamodb_table.document_output_table.id
+      ASYNC_QUEUE_URL=aws_sqs_queue.async_complete_queue.id,
+      SNS_TOPIC_ARN=aws_sns_topic.job_notification.arn,
+      SNS_ROLE_ARN=aws_iam_role.textract_service_role.arn
     }
   }
 }
@@ -138,3 +139,47 @@ data "archive_file" "asyncproc" {
   output_path = var.asyncproc_archive_file_output_path
 }
 
+# Textract IAM Role and Policy
+resource "aws_iam_role" "textract_service_role" {
+  name = var.textract_service_role_name
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "textract.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "textract_service_role_policy" {
+  name        = var.textract_service_role_policy_name
+  description = "Provides access to sns"
+  path        = "/"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": [
+        "sns:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "textract_policy_attachment" {
+  role       = aws_iam_role.textract_service_role.name
+  policy_arn = aws_iam_policy.textract_service_role_policy.arn
+}

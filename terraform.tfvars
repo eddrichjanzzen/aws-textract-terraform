@@ -7,15 +7,15 @@ aws_role    = "OrganizationAccountAccessRole"
 
 # SQS - Sync Queue
 sync_queue_name = "sync-queue"
-sync_queue_visibility_timeout = 300
+sync_queue_visibility_timeout = 14400
 
 # SQS - Async Queue
 async_queue_name = "async-queue"
-async_queue_visibility_timeout = 300
+async_queue_visibility_timeout = 14400
 
 # SQS - Async Complete Queue
 async_complete_queue_name = "async-complete-queue"
-async_complete_queue_visibility_timeout = 300
+async_complete_queue_visibility_timeout = 14400
 
 # SNS Job notifications
 job_notification_service_name = "job-notifications-sns"
@@ -62,7 +62,7 @@ docproc_archive_file_output_path = "zipfiles/docproc.zip"
 syncproc_function_name = "syncproc"
 syncproc_function_filename= "zipfiles/syncproc.zip"
 syncproc_function_handler = "syncproc.lambda_handler"
-syncproc_function_timeout = 300
+syncproc_function_timeout = 14400
 syncproc_archive_file_source_file = "src/syncproc.py"
 syncproc_archive_file_output_path = "zipfiles/syncproc.zip"
 
@@ -84,7 +84,7 @@ jobresultsproc_archive_file_output_path = "zipfiles/jobresultsproc.zip"
 asyncproc_function_name = "asyncproc"
 asyncproc_function_filename= "zipfiles/asyncproc.zip"
 asyncproc_function_handler = "asyncproc.lambda_handler"
-asyncproc_function_timeout = 300
+asyncproc_function_timeout = 14400
 asyncproc_archive_file_source_file = "src/asyncproc.py"
 asyncproc_archive_file_output_path = "zipfiles/asyncproc.zip"
 
@@ -95,6 +95,9 @@ syncproc_event_source_mapping_batch_size = 1
 lambda_service_role_name = "aws_lambda_service_role"
 lambda_service_role_policy_name ="aws_lambda_service_role_policy"
 
+# Textract service role
+textract_service_role_name = "aws_textract_service_role"
+textract_service_role_policy_name ="aws_textract_service_role_policy"
 
 # Lambda Layer Archive File
 lambda_layer_archive_file_source_dir = "src/utils/"

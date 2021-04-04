@@ -8,6 +8,7 @@ resource "random_string" "id" {
 # S3 Bucket for new Documents
 resource "aws_s3_bucket" "new_documents" {
   bucket = "${var.new_documents_bucket_name}-${random_string.id.result}"
+  force_destroy = true
 }
 
 # S3 Bucket for new Documents Policy
@@ -38,6 +39,7 @@ POLICY
 # S3 Bucket for Textract Results
 resource "aws_s3_bucket" "textract_results" {
   bucket = "${var.textract_results_bucket_name}-${random_string.id.result}"
+  force_destroy = true
 }
 
 # S3 Bucket Policy
@@ -68,6 +70,7 @@ POLICY
 # S3 Bucket for Existing Documents
 resource "aws_s3_bucket" "existing_documents" {
   bucket = "${var.existing_documents_bucket_name}-${random_string.id.result}"
+  force_destroy = true
 }
 
 # S3 Bucket Policy

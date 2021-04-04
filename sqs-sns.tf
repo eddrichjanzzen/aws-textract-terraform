@@ -27,7 +27,7 @@ POLICY
 # AWS SQS - Async Queue
 resource "aws_sqs_queue" "async_queue" {
   name                       = var.async_queue_name
-  visibility_timeout_seconds = var.sync_queue_visibility_timeout
+  visibility_timeout_seconds = var.async_queue_visibility_timeout
 }
 
 # AWS SQS Queue policy
@@ -53,8 +53,8 @@ POLICY
 
 # AWS SQS - Async Queue
 resource "aws_sqs_queue" "async_complete_queue" {
-  name                       = var.async_queue_name
-  visibility_timeout_seconds = var.sync_queue_visibility_timeout
+  name                       = var.async_complete_queue_name
+  visibility_timeout_seconds = var.async_complete_queue_visibility_timeout
 }
 
 # AWS SQS Queue policy
