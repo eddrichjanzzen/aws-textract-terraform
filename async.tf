@@ -121,7 +121,7 @@ resource "aws_lambda_function" "asyncproc" {
 
 	environment {
 		variables = {
-			ASYNC_QUEUE_URL=aws_sqs_queue.async_complete_queue.id,
+			ASYNC_QUEUE_URL=aws_sqs_queue.async_queue.id,
 			SNS_TOPIC_ARN=aws_sns_topic.job_notification.arn,
 			SNS_ROLE_ARN=aws_iam_role.textract_service_role.arn
 		}
