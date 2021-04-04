@@ -56,6 +56,27 @@ variable "async_queue_visibility_timeout" {
   description = "Required - visisbility timeout of the sqs queue, make sure this is equal or greater than the timeout of the lambda function"    
 }
 
+# SQS queue - Async Complete
+
+variable "async_complete_queue_name" {
+  type        = string
+  description = "Required - Name of the sqs queue."    
+}
+
+variable "async_complete_queue_visibility_timeout" {
+  type        = string
+  description = "Required - visisbility timeout of the sqs queue, make sure this is equal or greater than the timeout of the lambda function"    
+}
+
+
+# SNS - Job notifications
+
+variable "job_notification_service_name" {
+  type        = string
+  description = "Required - Name of the sns notification"    
+}
+
+
 
 # S3 Bucket - new 
 
@@ -67,6 +88,13 @@ variable "new_documents_bucket_name" {
 # S3 Bucket - results
 
 variable "textract_results_bucket_name" {
+  type        = string
+  description = "Required - Name of the s3 bucket."    
+}
+
+# S3 Bucket - existing documents
+
+variable "existing_documents_bucket_name" {
   type        = string
   description = "Required - Name of the s3 bucket."    
 }
@@ -204,6 +232,93 @@ variable "syncproc_archive_file_output_path" {
 }
 
 
+# s3batchproc Lambda
+variable "s3batchproc_function_name" {
+  type        = string
+  description = "Required - function_name of the s3batchproc function"    
+}
+
+variable "s3batchproc_function_filename" {
+  type        = string
+  description = "Required - filename of s3batchproc function ends in filename.zip"    
+}
+
+variable "s3batchproc_function_handler" {
+  type        = string
+  description = "Required - Name of the lambda handler"    
+}
+
+# #3proc Archieve File
+variable "s3batchproc_archive_file_source_file" {
+  type        = string
+  description = "Required - source to archive for lambda function eg. lambda_function.py"    
+}
+
+variable "s3batchproc_archive_file_output_path" {
+  type        = string
+  description = "Required - output path of the archive file for the lambda function eg. lambda_function.zip"    
+}
+
+
+# Jobresultsproc Lambda
+variable "jobresultsproc_function_name" {
+  type        = string
+  description = "Required - function_name of the jobresultsproc function"    
+}
+
+variable "jobresultsproc_function_filename" {
+  type        = string
+  description = "Required - filename of jobresultsproc function ends in filename.zip"    
+}
+
+variable "jobresultsproc_function_handler" {
+  type        = string
+  description = "Required - Name of the lambda handler"    
+}
+
+# #3proc Archieve File
+variable "jobresultsproc_archive_file_source_file" {
+  type        = string
+  description = "Required - source to archive for lambda function eg. lambda_function.py"    
+}
+
+variable "jobresultsproc_archive_file_output_path" {
+  type        = string
+  description = "Required - output path of the archive file for the lambda function eg. lambda_function.zip"    
+}
+
+# Asyncproc Lambda
+variable "asyncproc_function_name" {
+  type        = string
+  description = "Required - function_name of the asyncproc function"    
+}
+
+variable "asyncproc_function_filename" {
+  type        = string
+  description = "Required - filename of asyncproc function ends in filename.zip"    
+}
+
+variable "asyncproc_function_handler" {
+  type        = string
+  description = "Required - Name of the lambda handler"    
+}
+
+variable "asyncproc_function_timeout" {
+  type        = number
+  description = "Required - timeout of asyncproc function, need to set greater than 3 seconds"    
+}
+
+# #3proc Archieve File
+variable "asyncproc_archive_file_source_file" {
+  type        = string
+  description = "Required - source to archive for lambda function eg. lambda_function.py"    
+}
+
+variable "asyncproc_archive_file_output_path" {
+  type        = string
+  description = "Required - output path of the archive file for the lambda function eg. lambda_function.zip"    
+}
+
 
 # Lambda SQS Event Source
 
@@ -241,7 +356,7 @@ variable "lambda_layer_layer_name" {
 
 variable "lambda_layer_archive_file_source_dir" {
   type        = string
-  description = "Required - source directory archive for lambda function eg. /src/lambda-layers"    
+  description = "Required - source directory archive for lambda function layers, the files must be stored in src/utils/lib/python3.6/site-packages directory for lambda to detect them"    
 }
 
 variable "lambda_layer_archive_file_output_path" {

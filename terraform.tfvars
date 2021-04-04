@@ -6,18 +6,28 @@ environment = "production"
 aws_role    = "OrganizationAccountAccessRole"
 
 # SQS - Sync Queue
-sync_queue_name = "182191634518-ap-southeast-1-sync-queue"
+sync_queue_name = "sync-queue"
 sync_queue_visibility_timeout = 300
 
 # SQS - Async Queue
-async_queue_name = "182191634518-ap-southeast-1-async-queue"
+async_queue_name = "async-queue"
 async_queue_visibility_timeout = 300
+
+# SQS - Async Complete Queue
+async_complete_queue_name = "async-complete-queue"
+async_complete_queue_visibility_timeout = 300
+
+# SNS Job notifications
+job_notification_service_name = "job-notifications-sns"
 
 # New Documents S3 bucket
 new_documents_bucket_name = "182191634518-ap-southeast-1-new-documents"
 
 # Textract Results S3 bucket
 textract_results_bucket_name = "182191634518-ap-southeast-1-textract-results"
+
+# Existing documents S3 bucket
+existing_documents_bucket_name = "182191634518-ap-southeast-1-existing-documents"
 
 # General Function runtime
 aws_lambda_function_runtime = "python3.6"
@@ -38,8 +48,6 @@ document_output_table_write_capacity = "1"
 s3proc_function_name = "s3proc"
 s3proc_function_filename= "zipfiles/s3proc.zip"
 s3proc_function_handler = "s3proc.lambda_handler"
-
-# S3proc - Archive File
 s3proc_archive_file_source_file = "src/s3proc.py"
 s3proc_archive_file_output_path = "zipfiles/s3proc.zip"
 
@@ -47,8 +55,6 @@ s3proc_archive_file_output_path = "zipfiles/s3proc.zip"
 docproc_function_name = "docproc"
 docproc_function_filename= "zipfiles/docproc.zip"
 docproc_function_handler = "docproc.lambda_handler"
-
-# Docproc - Archive File
 docproc_archive_file_source_file = "src/docproc.py"
 docproc_archive_file_output_path = "zipfiles/docproc.zip"
 
@@ -57,10 +63,30 @@ syncproc_function_name = "syncproc"
 syncproc_function_filename= "zipfiles/syncproc.zip"
 syncproc_function_handler = "syncproc.lambda_handler"
 syncproc_function_timeout = 300
-
-# Syncproc - Archive File
 syncproc_archive_file_source_file = "src/syncproc.py"
 syncproc_archive_file_output_path = "zipfiles/syncproc.zip"
+
+# S3batchproc - Lambda
+s3batchproc_function_name = "s3batchproc"
+s3batchproc_function_filename= "zipfiles/s3batchproc.zip"
+s3batchproc_function_handler = "s3batchproc.lambda_handler"
+s3batchproc_archive_file_source_file = "src/s3batchproc.py"
+s3batchproc_archive_file_output_path = "zipfiles/s3batchproc.zip"
+
+# Jobresultsproc - Lambda
+jobresultsproc_function_name = "jobresultsproc"
+jobresultsproc_function_filename= "zipfiles/jobresultsproc.zip"
+jobresultsproc_function_handler = "jobresultsproc.lambda_handler"
+jobresultsproc_archive_file_source_file = "src/jobresultsproc.py"
+jobresultsproc_archive_file_output_path = "zipfiles/jobresultsproc.zip"
+
+# Asyncproc - Lambda
+asyncproc_function_name = "asyncproc"
+asyncproc_function_filename= "zipfiles/asyncproc.zip"
+asyncproc_function_handler = "asyncproc.lambda_handler"
+asyncproc_function_timeout = 300
+asyncproc_archive_file_source_file = "src/asyncproc.py"
+asyncproc_archive_file_output_path = "zipfiles/asyncproc.zip"
 
 # Lambda SQS Event Source
 syncproc_event_source_mapping_batch_size = 1
