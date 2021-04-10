@@ -109,6 +109,7 @@ resource "aws_lambda_function" "syncproc" {
 	role          = aws_iam_role.lambda_service_role.arn
 	handler       = var.syncproc_function_handler
 	runtime       = var.aws_lambda_function_runtime
+  timeout  = var.syncproc_function_timeout
 
 	depends_on = [
 		aws_iam_role_policy_attachment.lambda_policy_attachment,
@@ -123,6 +124,14 @@ resource "aws_lambda_function" "syncproc" {
 	    OUTPUT_TABLE = aws_dynamodb_table.document_output_table.id,
       OUTPUT_BUCKET = aws_s3_bucket.textract_results.id
 		}
+	}
+	
+	# Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
 	}
 }
 
@@ -172,6 +181,14 @@ resource "aws_lambda_function" "s3proc" {
 		variables = {
 			DOCUMENTS_TABLE = aws_dynamodb_table.document_input_table.id
 		}
+	}
+	
+	# Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
 	}
 }
 

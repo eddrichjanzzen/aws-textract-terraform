@@ -4,6 +4,8 @@ aws_account = "182101634518"
 namespace   = "shared"
 environment = "production"
 aws_role    = "OrganizationAccountAccessRole"
+aws_textract_repository_name ="project-textract-service"
+bounded_context = "shared"
 
 # SQS - Sync Queue
 sync_queue_name = "sync-queue"
@@ -17,8 +19,8 @@ async_queue_visibility_timeout = 14400
 async_complete_queue_name = "async-complete-queue"
 async_complete_queue_visibility_timeout = 14400
 
-# SNS Job notifications
-job_notification_service_name = "job-notifications-sns"
+# SNS Job notifications Topic
+job_notification_topic_name = "job-notifications-sns"
 
 # New Documents S3 bucket
 new_documents_bucket_name = "182191634518-ap-southeast-1-new-documents"
@@ -62,9 +64,10 @@ docproc_archive_file_output_path = "zipfiles/docproc.zip"
 syncproc_function_name = "syncproc"
 syncproc_function_filename= "zipfiles/syncproc.zip"
 syncproc_function_handler = "syncproc.lambda_handler"
-syncproc_function_timeout = 14400
+syncproc_function_timeout = 600
 syncproc_archive_file_source_file = "src/syncproc.py"
 syncproc_archive_file_output_path = "zipfiles/syncproc.zip"
+syncproc_event_source_mapping_batch_size = 1
 
 # S3batchproc - Lambda
 s3batchproc_function_name = "s3batchproc"
@@ -77,20 +80,22 @@ s3batchproc_archive_file_output_path = "zipfiles/s3batchproc.zip"
 jobresultsproc_function_name = "jobresultsproc"
 jobresultsproc_function_filename= "zipfiles/jobresultsproc.zip"
 jobresultsproc_function_handler = "jobresultsproc.lambda_handler"
+jobresultsproc_function_timeout = 600
 jobresultsproc_archive_file_source_file = "src/jobresultsproc.py"
 jobresultsproc_archive_file_output_path = "zipfiles/jobresultsproc.zip"
+jobresultsproc_event_source_mapping_batch_size = 1
+
 
 # Asyncproc - Lambda
 asyncproc_function_name = "asyncproc"
 asyncproc_function_filename= "zipfiles/asyncproc.zip"
 asyncproc_function_handler = "asyncproc.lambda_handler"
-asyncproc_function_timeout = 14400
+asyncproc_function_timeout = 600
 asyncproc_cloudwatch_trigger_schedule = "rate(5 minutes)"
 asyncproc_archive_file_source_file = "src/asyncproc.py"
 asyncproc_archive_file_output_path = "zipfiles/asyncproc.zip"
 
 # Lambda SQS Event Source
-syncproc_event_source_mapping_batch_size = 1
 
 # Lambda service role
 lambda_service_role_name = "aws_lambda_service_role"

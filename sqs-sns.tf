@@ -2,6 +2,15 @@
 resource "aws_sqs_queue" "sync_queue" {
   name                       = var.sync_queue_name
   visibility_timeout_seconds = var.sync_queue_visibility_timeout
+
+  # Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
+	}
+
 }
 
 # AWS SQS Queue Policy
@@ -28,6 +37,16 @@ POLICY
 resource "aws_sqs_queue" "async_queue" {
   name                       = var.async_queue_name
   visibility_timeout_seconds = var.async_queue_visibility_timeout
+
+  # Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
+	}
+
+
 }
 
 # AWS SQS Queue policy
@@ -77,8 +96,8 @@ resource "aws_sqs_queue_policy" "async_complete_queue" {
 POLICY
 }
 
-resource "aws_sns_topic" "job_notification" {
-  name = var.job_notification_service_name
+resource "aws_sns_topic" "job_notification_topic" {
+  name = var.job_notification_topic_name
   delivery_policy = <<EOF
 {
   "http": {
@@ -98,4 +117,12 @@ resource "aws_sns_topic" "job_notification" {
   }
 }
 EOF
+}
+
+# SNS topic subscription
+
+resource "aws_sns_topic_subscription" "job_notification_topic_subscription" {
+  topic_arn = aws_sns_topic.job_notification_topic.arn
+  protocol  = "sqs"
+  endpoint  = aws_sqs_queue.async_complete_queue.arn
 }

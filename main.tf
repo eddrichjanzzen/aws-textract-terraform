@@ -11,6 +11,14 @@ resource "aws_dynamodb_table" "document_input_table" {
     name = var.document_input_table_hash_key
     type = "S"
   }
+
+  # Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
+	}
 }
 
 
@@ -25,5 +33,14 @@ resource "aws_dynamodb_table" "document_output_table" {
     name = var.document_output_table_hash_key
     type = "S"
   }
+
+  # Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
+	}
+
 }
 

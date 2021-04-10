@@ -9,6 +9,15 @@ resource "random_string" "id" {
 resource "aws_s3_bucket" "new_documents" {
   bucket = "${var.new_documents_bucket_name}-${random_string.id.result}"
   force_destroy = true
+
+  # Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
+	}
+
 }
 
 # S3 Bucket for new Documents Policy
@@ -40,6 +49,15 @@ POLICY
 resource "aws_s3_bucket" "textract_results" {
   bucket = "${var.textract_results_bucket_name}-${random_string.id.result}"
   force_destroy = true
+
+  # Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
+	}
+
 }
 
 # S3 Bucket Policy
@@ -71,6 +89,15 @@ POLICY
 resource "aws_s3_bucket" "existing_documents" {
   bucket = "${var.existing_documents_bucket_name}-${random_string.id.result}"
   force_destroy = true
+
+  # Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
+	}
+
 }
 
 # S3 Bucket Policy

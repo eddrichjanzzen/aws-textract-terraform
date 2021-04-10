@@ -23,6 +23,15 @@ resource "aws_lambda_function" "s3batchproc" {
 			DOCUMENTS_TABLE = aws_dynamodb_table.document_input_table.id
 		}
 	}
+
+	# Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
+	}
+
 }
 
 resource "aws_cloudwatch_log_group" "s3batchproc" {
@@ -65,7 +74,8 @@ resource "aws_s3_bucket_notification" "s3batchproc" {
 resource "aws_lambda_function" "jobresultsproc" {
 	filename      = var.jobresultsproc_function_filename
 	function_name = var.jobresultsproc_function_name
-	
+	timeout 			= var.jobresultsproc_function_timeout
+
 	source_code_hash = filebase64sha256(var.jobresultsproc_archive_file_output_path)
 	
 	role          = aws_iam_role.lambda_service_role.arn
@@ -86,6 +96,14 @@ resource "aws_lambda_function" "jobresultsproc" {
 			OUTPUT_TABLE = aws_dynamodb_table.document_output_table.id
 		}
 	}
+
+	# Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
+	}
 }
 
 resource "aws_cloudwatch_log_group" "jobresultsproc" {
@@ -100,10 +118,23 @@ data "archive_file" "jobresultsproc" {
 }
 
 
+resource "aws_lambda_event_source_mapping" "jobresultsproc" {
+	event_source_arn = aws_sqs_queue.async_complete_queue.arn
+	enabled = true
+	function_name = aws_lambda_function.jobresultsproc.arn
+	batch_size = var.jobresultsproc_event_source_mapping_batch_size
+
+	depends_on = [
+		aws_iam_role_policy_attachment.lambda_policy_attachment
+	]
+}
+
+
 # Asyncproc Lambda
 resource "aws_lambda_function" "asyncproc" {
 	filename      = var.asyncproc_function_filename
 	function_name = var.asyncproc_function_name
+	timeout  			= var.asyncproc_function_timeout
 	
 	source_code_hash = filebase64sha256(var.asyncproc_archive_file_output_path)
 	
@@ -122,33 +153,41 @@ resource "aws_lambda_function" "asyncproc" {
 	environment {
 		variables = {
 			ASYNC_QUEUE_URL=aws_sqs_queue.async_queue.id,
-			SNS_TOPIC_ARN=aws_sns_topic.job_notification.arn,
+			SNS_TOPIC_ARN=aws_sns_topic.job_notification_topic.arn,
 			SNS_ROLE_ARN=aws_iam_role.textract_service_role.arn
 		}
 	}
+
+	# Tagging
+	tags = {
+		Name           = var.aws_textract_repository_name
+		Namespace      = var.namespace
+		BoundedContext = var.bounded_context
+		Environment    = var.environment
+	}
+
 }
 
 # Check every 5 mins
-resource "aws_cloudwatch_event_rule" "rule" {
+resource "aws_cloudwatch_event_rule" "rule_five_minutes" {
 	name = "every-five-minutes"
 	description = "Fires every five minutes"
 	schedule_expression = var.asyncproc_cloudwatch_trigger_schedule
 }
 
-resource "aws_cloudwatch_event_target" "check_foo_every_five_minutes" {
-	rule = aws_cloudwatch_event_rule.rule.name
+resource "aws_cloudwatch_event_target" "asyncproc" {
+	rule = aws_cloudwatch_event_rule.rule_five_minutes.name
 	target_id = var.asyncproc_function_name
 	arn = aws_lambda_function.asyncproc.arn
 }
 
-resource "aws_lambda_permission" "allow_cloudwatch_to_call_check_foo" {
+resource "aws_lambda_permission" "allow_cloudwatch" {
 	statement_id = "AllowExecutionFromCloudWatch"
-	action = "lambda:InvokeFunction"
+	action = "lambda:*"
 	function_name = aws_lambda_function.asyncproc.function_name
 	principal = "events.amazonaws.com"
-	source_arn = aws_cloudwatch_event_rule.rule.arn
+	source_arn = aws_cloudwatch_event_rule.rule_five_minutes.arn
 }
-
 
 resource "aws_cloudwatch_log_group" "asyncproc" {
 	name              = "/aws/lambda/${var.asyncproc_function_name}"

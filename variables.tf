@@ -24,12 +24,23 @@ variable "environment" {
   description = "Environment."
 }
 
+variable "bounded_context" {
+  type        = string
+  description = "Bounded Context."
+}
+
 # Lambda Global Runtime 
 variable "aws_lambda_function_runtime" {
   type        = string
   description = "Required - runtime of the lambda function, python, node, c#, etc"    
 }
 
+
+# ECR Repository
+variable "aws_textract_repository_name" {
+  type        = string
+  description = "Required - Name of the repository."
+}
 
 # SQS queue - Sync
 
@@ -71,9 +82,9 @@ variable "async_complete_queue_visibility_timeout" {
 
 # SNS - Job notifications
 
-variable "job_notification_service_name" {
+variable "job_notification_topic_name" {
   type        = string
-  description = "Required - Name of the sns notification"    
+  description = "Required - Name of the sns notification topic"    
 }
 
 
@@ -220,6 +231,12 @@ variable "syncproc_function_timeout" {
   description = "Required - timeout of syncproc function, need to set greater than 3 seconds"    
 }
 
+variable "syncproc_event_source_mapping_batch_size" {
+  type        = number
+  description = "Required - Number of messages you want to send the sqs queue at a time. eg. 1 message at a time"    
+}
+
+
 # Syncproc Archieve File
 variable "syncproc_archive_file_source_file" {
   type        = string
@@ -276,6 +293,16 @@ variable "jobresultsproc_function_handler" {
   description = "Required - Name of the lambda handler"    
 }
 
+variable "jobresultsproc_event_source_mapping_batch_size" {
+  type        = number
+  description = "Required - Number of messages you want to send the sqs queue at a time. eg. 1 message at a time"    
+}
+
+variable "jobresultsproc_function_timeout" {
+  type        = number
+  description = "Required - timeout of asyncproc function, need to set greater than 3 seconds"    
+}
+
 # #3proc Archieve File
 variable "jobresultsproc_archive_file_source_file" {
   type        = string
@@ -324,13 +351,6 @@ variable "asyncproc_archive_file_output_path" {
   description = "Required - output path of the archive file for the lambda function eg. lambda_function.zip"    
 }
 
-
-# Lambda SQS Event Source
-
-variable "syncproc_event_source_mapping_batch_size" {
-  type        = number
-  description = "Required - Number of messages you want to send the sqs queue at a time. eg. 1 message at a time"    
-}
 
 # Lambda Service Role
 
