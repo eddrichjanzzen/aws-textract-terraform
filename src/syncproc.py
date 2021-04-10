@@ -98,7 +98,7 @@ def lambda_handler(event, context):
     request["objectName"] = message['objectName']
     request["features"] = message['features']    
     request["outputTable"] = os.environ['OUTPUT_TABLE']
-    request["outputBucket"] = os.environ['TEXTRACT_RESULTS_S3']
+    request["outputBucket"] = os.environ['OUTPUT_BUCKET']
 
 
     return processRequest(request)
