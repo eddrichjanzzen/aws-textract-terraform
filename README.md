@@ -29,6 +29,9 @@ Architecture below shows overall workflow and few additional components that are
 
 ## Source code
 
+- [s3batchproc.py](./src/s3batchproc.py) Lambda function that handles event from S3 Batch operation job.
 - [s3proc.py](./src/s3proc.py) Lambda function that handles s3 event for an object creation.
 - [docproc.py](./src/docproc.py) Lambda function that push documents to queues for sync or async pipelines.
 - [syncproc.py](./src/syncproc.py) Lambda function that takes documents from a queue and process them using sync APIs.
+- [asyncproc.py](./src/asyncproc.py) Lambda function that takes documents from a queue and start async Amazon Textract jobs.
+- [jobresults.py](./src/jobresults.py) Lambda function that process results for a completed Amazon Textract async job.
