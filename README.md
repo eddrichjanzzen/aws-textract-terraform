@@ -34,4 +34,4 @@ Architecture below shows overall workflow and few additional components that are
 - [docproc.py](./src/docproc.py) Lambda function that push documents to queues for sync or async pipelines.
 - [syncproc.py](./src/syncproc.py) Lambda function that takes documents from a queue and process them using sync APIs.
 - [asyncproc.py](./src/asyncproc.py) Lambda function that takes documents from a queue and start async Amazon Textract jobs.
-- [jobresults.py](./src/jobresults.py) Lambda function that process results for a completed Amazon Textract async job.
+- [jobresultsproc.py](./src/jobresultsproc.py) Lambda function that process results for a completed Amazon Textract async job.
